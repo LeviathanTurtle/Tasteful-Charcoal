@@ -8,12 +8,12 @@
 MODS_IN_QUESTION: dict[str,int] = {
     "create": 328085,
     "just enough items": 238222,
-    "mouse tweaks": 60089,
-    "appleskin": 248787,
-    "jade": 324717,
-    "waystones": 245755,
-    "enchantment descriptions": 250419,
-    "sophisticated backpacks": 422301,
+    #"mouse tweaks": 60089,
+    #"appleskin": 248787,
+    #"jade": 324717,
+    #"waystones": 245755,
+    #"enchantment descriptions": 250419,
+    #"sophisticated backpacks": 422301,
 }
 
 # set to true if you want to include non-release versions
