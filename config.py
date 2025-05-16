@@ -24,3 +24,11 @@ VERSIONS_TO_CHECK: list[str] = [
     "1.21.1",
     "1.20.1",
 ]
+
+# collection of mod loaders you want to use
+INCLUDED_MODLOADERS: list[str] = [
+    "forge",
+    "fabric",
+    "quilt",
+    "neoforge"
+]
