@@ -6,7 +6,8 @@
 # collection of mods to check
 # "mod_name": mod_id,
 MODS_IN_QUESTION: dict[str,int] = {
-    "create": 328085,
+    # todo: include both name and ID for checking later
+    #"create": 328085,
     "just enough items": 238222,
     #"mouse tweaks": 60089,
     #"appleskin": 248787,

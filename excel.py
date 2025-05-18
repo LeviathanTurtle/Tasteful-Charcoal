@@ -36,7 +36,8 @@ def write_to_spreadsheet(
         "mod id": [mod.id for mod in mods],
         "versions": [mod.versions[:5] for mod in mods], # needs to be only first 5
         "...+x": [f"...+{max(len(mod.versions)-5, 0)}" if len(mod.versions) > 5 else "" for mod in mods],
-        "modloaders": [", ".join(mod.loaders) for mod in mods]
+        "modloaders": [", ".join(mod.loaders) for mod in mods],
+        "unknowns": [] # todo: this
     })
     
     # Collect all game versions and loaders
