@@ -24,6 +24,7 @@ include_prereleases: bool = False
 VERSIONS_TO_CHECK: list[str] = [
     "1.21.1",
     "1.20.1",
+    "1.19.2",
 ]
 
 # collection of mod loaders you want to use

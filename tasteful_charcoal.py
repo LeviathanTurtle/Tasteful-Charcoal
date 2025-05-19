@@ -9,7 +9,7 @@ from typing import Optional, Literal
 from config import MODS_IN_QUESTION, include_prereleases
 from constants import API_KEY
 from constants import ModData
-#from excel import write_to_spreadsheet
+from excel import write_to_spreadsheet
 
 import requests
 
@@ -27,26 +27,6 @@ def translate_modloader(modloader: int | None) -> str:
         case 5: return "Quilt"
         case 6: return "NeoForge"
         case _: return "Unknown"
-
-def translate_modloader_version(gameVersions: list[str]) -> list[str]:
-    """function def."""
-    
-    loaders = set()
-    for version in gameVersions:
-        v = version.lower()
-        if "forge" in v:
-            loaders.add("Forge")
-        elif "cauldron" in v:
-            loaders.add("Cauldron")
-        elif "liteloader" in v:
-            loaders.add("LiteLoader")
-        elif "fabric" in v:
-            loaders.add("Fabric")
-        elif "quilt" in v:
-            loaders.add("Quilt")
-        elif "neoforge" in v:
-            loaders.add("NeoForge")
-    return list(loaders)
 
 def get_mod_info() -> list[ModData]:
     """function def."""
@@ -76,33 +56,33 @@ def get_mod_info() -> list[ModData]:
         if response.status_code == 200:
             # extract data
             data = response.json()["data"]
-            #print(data)
             
-            versions = []
-            loaders = []
+            versions_and_loaders = []
             
-            # extract data from latestFilesIndexes
+            # 1. extract data from latestFilesIndexes
             # use this one because we want the most recent of that game version
             for file_index in data.get('latestFilesIndexes', []):
                 # 1: release, 2: beta, 3: alpha
                 #if not include_prereleases and file_index.get("releaseType", 1) != 1:
                 #    continue
 
-                versions.append(file_index["gameVersion"])
-                #print(file_index["modLoader"])
-
+                game_version = file_index['gameVersion']
+                
                 try:
-                    loaders.append(translate_modloader(file_index["modLoader"]))
+                    modloader = translate_modloader(file_index["modLoader"])
+                    # todo: INCLUDED_MODLOADERS check goes literally right here
+                    versions_and_loaders.append(f"{modloader} {game_version}")
                 except KeyError:
-                    print(f"Error checking loader version due to missing modLoader attribute")
-                    loaders.append("Unknown")
                     # todo: figure out a better way of handling this, not all unknowns are alphas
+                    versions_and_loaders.append(f"Unknown {game_version}")
+            
+            # 2. extract dependencies
+            # todo: this
             
             mod_data.append(ModData(
                 name=data["name"],
                 id=data["id"],
-                versions=versions,
-                loaders=loaders
+                vers_load=versions_and_loaders
             ))
         else:
             print("Error fetching data:", response.status_code)
@@ -115,25 +95,23 @@ def get_mod_info() -> list[ModData]:
 def main():
     #print(API_KEY)
     
-    # todo: include dependencies
     mod_data = get_mod_info()
     
     for mod in mod_data:
-        print(f"{mod.name}:")
-        #print(f"Versions: {mod.versions}")
-        #print(f"Loaders: {mod.loaders}")
-        for i in range(len(mod.versions)):
-            print(f"{i+1}. {mod.loaders[i]} {mod.versions[i]}")
+        print(f"\n{mod.name}:")
+
+        for i in range(len(mod.vers_load)):
+            if "unknown" not in mod.vers_load[i].lower():
+                print(f"{i+1}. {mod.vers_load[i]}")
     
-    #for mod_name, mod_id in MODS_IN_QUESTION.items():
-    #    mod_info = get_mod_info(mod_id)
-        
-        #if mod_info:
-        #    print(f"Supported versions and modloaders for '{mod_name}':")
-        #    for version, modloader in mod_info:
-        #        print(f"Minecraft {version} - {modloader}")
-        #else:
-        #    print(f"No supported versions or modloaders for '{mod_name}'")
+    print("\nUnknowns:")
+    for mod in mod_data:
+        for i in range(len(mod.vers_load)):
+            if "unknown" in mod.vers_load[i].lower():
+                print(f"{i+1}. {mod.vers_load[i]}")
+    
+    write_to_spreadsheet(mod_data)
+
 
 if __name__ == "__main__":
     main()
