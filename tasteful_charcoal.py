@@ -5,14 +5,11 @@
 # 
 
 from typing import Optional, Literal
-
-from config import MODS_IN_QUESTION, include_prereleases
-from constants import API_KEY
-from constants import ModData
+from constants import API_KEY, ModData
 from excel import write_to_spreadsheet
 
 import requests
-
+import config
 
 
 def translate_modloader(modloader: int | None) -> str:
@@ -31,23 +28,16 @@ def translate_modloader(modloader: int | None) -> str:
 def get_mod_info() -> list[ModData]:
     """function def."""
     
-    # make modlist of IDs
-    mod_id_list = list(MODS_IN_QUESTION.values())
-    #print(mod_id_list)
-    
     headers = {
         #"Content-Type": "application/json",
         "Accept": "application/json",
         "x-api-key": API_KEY
     }
-    #payload = {
-    #    "modIds": modlist
-    #}
     
     mod_data = []
     
     # for each mod ID
-    for mod_id in mod_id_list:
+    for mod_name, mod_id in config.MODS_IN_QUESTION.items():
         # query the API
         url = f"https://api.curseforge.com/v1/mods/{mod_id}"
         #response = requests.post(url, headers=headers, json=payload)
@@ -58,6 +48,7 @@ def get_mod_info() -> list[ModData]:
             data = response.json()["data"]
             
             versions_and_loaders = []
+            #dependencies = []
             
             # 1. extract data from latestFilesIndexes
             # use this one because we want the most recent of that game version
@@ -70,11 +61,14 @@ def get_mod_info() -> list[ModData]:
                 
                 try:
                     modloader = translate_modloader(file_index["modLoader"])
-                    # todo: INCLUDED_MODLOADERS check goes literally right here
-                    versions_and_loaders.append(f"{modloader} {game_version}")
+                    
+                    # filter out ones the user does not want to check
+                    if modloader.lower() in config.MODLOADERS_TO_CHECK and game_version in config.VERSIONS_TO_CHECK:
+                        versions_and_loaders.append(f"{modloader} {game_version}")
                 except KeyError:
                     # todo: figure out a better way of handling this, not all unknowns are alphas
-                    versions_and_loaders.append(f"Unknown {game_version}")
+                    if game_version in config.VERSIONS_TO_CHECK:
+                        versions_and_loaders.append(f"Unknown {game_version}")
             
             # 2. extract dependencies
             # todo: this
@@ -84,6 +78,11 @@ def get_mod_info() -> list[ModData]:
                 id=data["id"],
                 vers_load=versions_and_loaders
             ))
+            
+            # verify mod names
+            #if mod_name != data["name"].lower():
+            #    print(f"Warning: name mismatch detected (provided: {mod_name}, actual: {data['name']})")
+            #    # todo: maybe something more than just a warning msg?
         else:
             print("Error fetching data:", response.status_code)
             print(response.text)
@@ -97,18 +96,18 @@ def main():
     
     mod_data = get_mod_info()
     
-    for mod in mod_data:
-        print(f"\n{mod.name}:")
-
-        for i in range(len(mod.vers_load)):
-            if "unknown" not in mod.vers_load[i].lower():
-                print(f"{i+1}. {mod.vers_load[i]}")
-    
-    print("\nUnknowns:")
-    for mod in mod_data:
-        for i in range(len(mod.vers_load)):
-            if "unknown" in mod.vers_load[i].lower():
-                print(f"{i+1}. {mod.vers_load[i]}")
+    #for mod in mod_data:
+    #    print(f"\n{mod.name}:")
+    #
+    #    for i in range(len(mod.vers_load)):
+    #        if "unknown" not in mod.vers_load[i].lower():
+    #            print(f"{i+1}. {mod.vers_load[i]}")
+    #
+    #print("\nUnknowns:")
+    #for mod in mod_data:
+    #    for i in range(len(mod.vers_load)):
+    #        if "unknown" in mod.vers_load[i].lower():
+    #            print(f"{i+1}. {mod.vers_load[i]}")
     
     write_to_spreadsheet(mod_data)
 

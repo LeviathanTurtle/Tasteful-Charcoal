@@ -28,9 +28,9 @@ VERSIONS_TO_CHECK: list[str] = [
 ]
 
 # collection of mod loaders you want to use
-INCLUDED_MODLOADERS: list[str] = [
+MODLOADERS_TO_CHECK: list[str] = [
     "forge",
     "fabric",
-    "quilt",
+    #"quilt",
     "neoforge"
 ]
