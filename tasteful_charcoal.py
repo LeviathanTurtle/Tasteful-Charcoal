@@ -109,6 +109,12 @@ def main():
     #        if "unknown" in mod.vers_load[i].lower():
     #            print(f"{i+1}. {mod.vers_load[i]}")
     
+    #print([mod.vers_load for mod in mod_data])
+    #print([
+    #    f"...+{max(len(mod.vers_load)-5, 0)}" if len(mod.vers_load) > 5 else "...+0"
+    #    for mod in mod_data
+    #])
+    
     write_to_spreadsheet(mod_data)
 
 

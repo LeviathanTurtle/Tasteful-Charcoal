@@ -10,6 +10,7 @@ from collections import defaultdict
 from xlsxwriter.utility import xl_rowcol_to_cell
 from time import time
 
+import config
 
 
 def split_loader_version(entry: str) -> tuple:
@@ -20,7 +21,13 @@ def split_loader_version(entry: str) -> tuple:
         return parts[0], parts[1] # (loader, version)
     return "Unknown", entry  # fallback if format is unexpected
 
-def get_unique_versions(mod: ModData):
+def count_extra_versions(mod: ModData) -> int:
+    """function def."""
+    
+    unique_versions = {split_loader_version(v)[1] for v in mod.vers_load}
+    return max(len(unique_versions)-5, 0)
+
+def get_unique_versions(mod: ModData) -> list:
     """Helper function that returns the five most recent, unique, supported game versions."""
     
     seen = set()
@@ -34,7 +41,7 @@ def get_unique_versions(mod: ModData):
             break
         
     # Pad with empty strings if fewer than 5
-    return unique #+ [""] * (5-len(unique))
+    return unique + [""] * (5-len(unique))
 
 def write_to_spreadsheet(
     mods: list[ModData]
@@ -51,7 +58,7 @@ def write_to_spreadsheet(
         "lastest version 4": [get_unique_versions(mod)[3] for mod in mods],
         "lastest version 5": [get_unique_versions(mod)[4] for mod in mods],
         "...+x": [
-            f"...+{max(len(mod.vers_load)-5, 0)}" #if len(mod.vers_load) > 5 else "...+0"
+            f"...+{count_extra_versions(mod)}" #if len(mod.vers_load) > 5 else "...+0"
             for mod in mods
         ],
         "modloaders": [
@@ -97,9 +104,9 @@ def write_to_spreadsheet(
                 #f"{version}": [] # todo: this?
             }
             # for each version supported by current loader, add column with empty strings
-            for version in versions:
+            for version in config.VERSIONS_TO_CHECK:
                 data[version] = ["" for _ in loader_mods]
-            # todo: is this necessary?
+            # todo: is this necessary? (see above for potential alt)
             
             # convert dict to DataFrame for excel
             df = pd.DataFrame(data)
@@ -122,7 +129,7 @@ def write_to_spreadsheet(
                     for vers in mod.vers_load if vers.startswith(loader)
                 }
                 # for each game version, set background accordingly
-                for col_idx, version in enumerate(versions, start=2): # start at third column
+                for col_idx, version in enumerate(config.VERSIONS_TO_CHECK, start=2): # start at third column
                     cell = xl_rowcol_to_cell(row_idx, col_idx)
                     fmt = green_fmt if version in mod_loader_versions else red_fmt
                     worksheet.write(cell, "", fmt)
