@@ -63,12 +63,12 @@ def get_mod_info() -> list[ModData]:
                     modloader = translate_modloader(file_index["modLoader"])
                     
                     # filter out ones the user does not want to check
-                    if modloader.lower() in config.MODLOADERS_TO_CHECK and game_version in config.VERSIONS_TO_CHECK:
+                    if modloader.lower() in config.MODLOADERS_TO_CHECK:# and game_version in config.VERSIONS_TO_CHECK:
                         versions_and_loaders.append(f"{modloader} {game_version}")
                 except KeyError:
                     # todo: figure out a better way of handling this, not all unknowns are alphas
-                    if game_version in config.VERSIONS_TO_CHECK:
-                        versions_and_loaders.append(f"Unknown {game_version}")
+                    #if game_version in config.VERSIONS_TO_CHECK:
+                    versions_and_loaders.append(f"Unknown {game_version}")
             
             # 2. extract dependencies
             # todo: this

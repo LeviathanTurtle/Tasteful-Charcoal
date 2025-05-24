@@ -66,7 +66,7 @@ def write_to_spreadsheet(
             for mod in mods
         ],
         "unknowns": [
-            ", ".join([v for v in mod.vers_load if split_loader_version(v)[0] == "Unknown"])
+            ", ".join([v.strip("Unknown ") for v in mod.vers_load if split_loader_version(v)[0] == "Unknown"])
             for mod in mods
         ]
     })
@@ -93,6 +93,9 @@ def write_to_spreadsheet(
         # update each modloader subsheet 
         # NOTE: WE MOVE FROM ONE SUBSHEET TO THE NEXT
         for loader, versions in versions_by_loader.items():
+            # skip unknowns
+            if loader == "Unknown": continue
+            
             # for each mod, check if it supports the current loader and keep if it does
             loader_mods = [mod for mod in mods if any(v.startswith(loader) for v in mod.vers_load)]
             # todo: sort backwards?
