@@ -18,8 +18,6 @@ API_KEY = os.getenv("CURSEFORGE_API_KEY")
 class ModData:
     name: str
     id: int
-    #versions: list[str]
-    #loaders: list[str]
-    #unknown_versions: list[str]
+    #dependency: bool # todo: also lib mod flag?
     vers_load: list[str]
 

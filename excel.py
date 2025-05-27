@@ -97,18 +97,18 @@ def write_to_spreadsheet(
             if loader == "Unknown": continue
             
             # for each mod, check if it supports the current loader and keep if it does
-            loader_mods = [mod for mod in mods if any(v.startswith(loader) for v in mod.vers_load)]
+            #loader_mods = [mod for mod in mods if any(v.startswith(loader) for v in mod.vers_load)]
             # todo: sort backwards?
 
             # Build DataFrame columns: mod name, mod id, then all versions for this loader
             data = {
-                "mod name": [mod.name for mod in loader_mods],
-                "mod id": [mod.id for mod in loader_mods],
+                "mod name": [mod.name for mod in mods], #loader_mods
+                "mod id": [mod.id for mod in mods], #loader_mods
                 #f"{version}": [] # todo: this?
             }
             # for each version supported by current loader, add column with empty strings
             for version in config.VERSIONS_TO_CHECK:
-                data[version] = ["" for _ in loader_mods]
+                data[version] = ["" for _ in mods] #loader_mods
             # todo: is this necessary? (see above for potential alt)
             
             # convert dict to DataFrame for excel
@@ -125,7 +125,7 @@ def write_to_spreadsheet(
             red_fmt = workbook.add_format({'bg_color': '#FFC7CE'})
 
             # Apply formatting to indicate if mod supports loader-version combo
-            for row_idx, mod in enumerate(loader_mods, start=1): # start at 1 to skip header
+            for row_idx, mod in enumerate(mods, start=1): # start at 1 to skip header, loader_mods
                 # for each mod, build set of supported game versions
                 mod_loader_versions = {
                     vers.split(maxsplit=1)[1]
