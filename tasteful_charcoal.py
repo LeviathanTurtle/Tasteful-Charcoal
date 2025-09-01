@@ -1,10 +1,8 @@
 # 
 # William Wadsworth
 # 5.15.2025
-# todo: run setup.py before running?
 # 
 
-from typing import Optional, Literal
 from constants import API_KEY, ModData
 from excel import write_to_spreadsheet
 
@@ -12,23 +10,15 @@ import requests
 import config
 
 
-def get_mod(mod_id: int):
-    """function def."""
+def get_mods() -> requests.Response:
+    """
+    Queries the CurseForge API using the mods specified in the configuration file.
+    
+    Returns:
+        Request: API response
+    """
     
     headers = {
-        #"Content-Type": "application/json",
-        "Accept": "application/json",
-        "x-api-key": API_KEY
-    }
-    
-    url = f"https://api.curseforge.com/v1/mods/{mod_id}"
-    return requests.get(url, headers=headers)
-
-def get_mods():
-    """function def."""
-    
-    headers = {
-        #"Content-Type": "application/json",
         "Accept": "application/json",
         "x-api-key": API_KEY
     }
@@ -36,11 +26,19 @@ def get_mods():
         "modIds": list(config.MODS_IN_QUESTION.values())
     }
 
-    url = "https://api.curseforge.com/v1/mods"
-    return requests.post(url, headers=headers, json=data)
+    return requests.post("https://api.curseforge.com/v1/mods", headers=headers, json=data)
+
 
 def translate_modloader(modloader: int | None) -> str:
-    """function def."""
+    """
+    Translates the modloader name from CurseForge's numerical classification.
+    
+    Params:
+        modloader (int | None): a CurseForge modloader number 
+    
+    Returns:
+        str: modloader in text form
+    """
     
     match (modloader):
         case 0: return "Any"
@@ -50,20 +48,16 @@ def translate_modloader(modloader: int | None) -> str:
         case 4: return "Fabric"
         case 5: return "Quilt"
         case 6: return "NeoForge"
-        case _: return "Unknown"
-
-def extract_dependency(dependency_id: int):
-    """function def."""
-    
-    # 
-    response = get_mod(dependency_id)
-    data = response.json()["data"]
-    
-    # 
+        case _: return "Unknown" 
     
 
-def get_mod_info() -> list[ModData]:
-    """function def."""
+def get_mod_info() -> list[ModData] | None:
+    """
+    Builds the list of mod data.
+    
+    Returns:
+        list[ModData]: list of each mod data object
+    """
     
     response = get_mods()
     
@@ -107,11 +101,6 @@ def get_mod_info() -> list[ModData]:
                 id=data["id"],
                 vers_load=versions_and_loaders
             ))
-            
-            # verify mod names
-            #if mod_name != data["name"].lower():
-            #    print(f"Warning: name mismatch detected (provided: {mod_name}, actual: {data['name']})")
-            #    # todo: maybe something more than just a warning msg?
         
         return mod_data
     else:
@@ -120,7 +109,7 @@ def get_mod_info() -> list[ModData]:
         return None
 
 
-def main():
+if __name__ == "__main__":
     mod_data = get_mod_info()
     # sort alphabetically by name
     mod_data.sort(key=lambda mod: mod.name.lower())
@@ -132,7 +121,3 @@ def main():
     #            print(f"{i+1}. {mod.vers_load[i]}")
     
     write_to_spreadsheet(mod_data)
-
-
-if __name__ == "__main__":
-    main()

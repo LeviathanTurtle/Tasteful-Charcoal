@@ -14,24 +14,54 @@ import config
 
 
 def split_loader_version(entry: str) -> tuple:
-    """Helper function to split a mod's loader and version."""
+    """
+    Helper function to split a mod's loader and version (e.g. "Forge 1.20.1").
+    
+    Params:
+        entry (str): string containing the mod's loader and version
+    
+    Returns:
+        tuple[str,str]: the separated modloader and game version
+    """
     
     parts = entry.split()
+    
     if len(parts) == 2:
         return parts[0], parts[1] # (loader, version)
-    return "Unknown", entry  # fallback if format is unexpected
+    
+    return "Unknown", entry # fallback if format is unexpected
+
 
 def count_extra_versions(mod: ModData) -> int:
-    """function def."""
+    """
+    Counts the number supported game versions for a mod above 5.
+    
+    Params:
+        mod (ModData): mod info object
+    
+    Returns:
+        int: number of extra versions
+    """
     
     unique_versions = {split_loader_version(v)[1] for v in mod.vers_load}
+    
     return max(len(unique_versions)-5, 0)
 
-def get_unique_versions(mod: ModData) -> list:
-    """Helper function that returns the five most recent, unique, supported game versions."""
+
+def get_unique_versions(mod: ModData) -> list[str]:
+    """
+    Helper function that returns the five most recent, unique, supported game versions.
+    
+    Params:
+        mod (ModData): mod info object
+    
+    Returns:
+        list[str]: unique list of supported game versions
+    """
     
     seen = set()
     unique = []
+    
     for v in sorted(mod.vers_load, reverse=True):
         loader, version = split_loader_version(v)
         if version not in seen and loader != "Unknown":
@@ -40,19 +70,23 @@ def get_unique_versions(mod: ModData) -> list:
         if len(unique) == 5:
             break
         
-    # Pad with empty strings if fewer than 5
+    # pad with empty strings if fewer than 5 (for excel spacing)
     return unique + [""] * (5-len(unique))
 
-def write_to_spreadsheet(
-    mods: list[ModData]
-) -> None:
-    """function def."""
+
+def write_to_spreadsheet(mods: list[ModData]) -> None:
+    """
+    Writes the generated data to the Excel spreadsheet.
+    
+    Params:
+        mods (list[ModData]): list of mods to populate
+    """
     
     # overview page
     overview = pd.DataFrame({
         "mod name": [mod.name for mod in mods],
         "mod id": [mod.id for mod in mods],
-        "lastest version 1": [get_unique_versions(mod)[0] for mod in mods],
+        "lastest version 1": [get_unique_versions(mod)[0] for mod in mods], # todo: optimize all this
         "lastest version 2": [get_unique_versions(mod)[1] for mod in mods],
         "lastest version 3": [get_unique_versions(mod)[2] for mod in mods],
         "lastest version 4": [get_unique_versions(mod)[3] for mod in mods],
@@ -71,7 +105,7 @@ def write_to_spreadsheet(
         ]
     })
     
-    # Collect all game versions and loaders
+    # collect all game versions and loaders
     # 1. extract all loader-version pairs as tuples, e.g. ("Forge", "1.20.1")
     loader_version_pairs = {
         tuple(vers.split(maxsplit=1)) for mod in mods for vers in mod.vers_load #if " " in vers
@@ -85,7 +119,7 @@ def write_to_spreadsheet(
         versions_by_loader[loader] = sorted(versions_by_loader[loader],reverse=True)
     # todo: remove unknowns
     
-    # Create an Excel writer using xlsxwriter engine (not openpyxl)
+    # create an Excel writer using xlsxwriter engine (not openpyxl)
     filename = f"{time()}.xlsx"
     with pd.ExcelWriter(filename, engine="xlsxwriter") as writer:
         overview.to_excel(writer, sheet_name="Overview", index=False)
@@ -100,7 +134,7 @@ def write_to_spreadsheet(
             #loader_mods = [mod for mod in mods if any(v.startswith(loader) for v in mod.vers_load)]
             # todo: sort backwards?
 
-            # Build DataFrame columns: mod name, mod id, then all versions for this loader
+            # build DataFrame columns: mod name, mod id, then all versions for this loader
             data = {
                 "mod name": [mod.name for mod in mods], #loader_mods
                 "mod id": [mod.id for mod in mods], #loader_mods
@@ -121,10 +155,10 @@ def write_to_spreadsheet(
             workbook = writer.book
 
             # Define formats
-            green_fmt = workbook.add_format({'bg_color': '#C6EFCE'})
-            red_fmt = workbook.add_format({'bg_color': '#FFC7CE'})
+            green_fmt = workbook.add_format({'bg_color': '#00ff00'}) #C6EFCE
+            red_fmt = workbook.add_format({'bg_color': '#ff0000'}) #FFC7CE
 
-            # Apply formatting to indicate if mod supports loader-version combo
+            # apply formatting to indicate if mod supports loader-version combo
             for row_idx, mod in enumerate(mods, start=1): # start at 1 to skip header, loader_mods
                 # for each mod, build set of supported game versions
                 mod_loader_versions = {
